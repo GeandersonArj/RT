@@ -1,4 +1,3 @@
-# RT
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -289,13 +288,6 @@
             <textarea id="commentObservations" class="photo-comment hidden" rows="2" placeholder="Adicionar comentário para esta foto..."></textarea>
         </div>
 
-        <div class="section-card no-print">
-            <h2 class="text-2xl font-semibold text-gray-700">Funcionalidades Inteligentes</h2>
-            <button id="generateSummaryButton" class="bg-purple-500 text-white p-3 rounded-xl hover:bg-purple-600 transition-all duration-300 shadow-md">Gerar Resumo ✨</button>
-            <div id="loadingSummary" class="loading-indicator">Gerando resumo...</div>
-            <textarea id="reportSummary" rows="7" placeholder="O resumo do relatório será gerado aqui pelo Gemini AI..." class="text-base mt-2" readonly></textarea>
-        </div>
-
         <button id="generateReportButton" class="bg-blue-500 text-white p-3 rounded-xl hover:bg-blue-600 transition-all duration-300 shadow-md mt-4 no-print">Gerar Relatório (Imprimir/PDF)</button>
     </div>
 
@@ -310,9 +302,6 @@
         let activeCommentElement = null; // To track the currently active comment element
 
         const messageBox = document.getElementById('messageBox');
-        const generateSummaryButton = document.getElementById('generateSummaryButton');
-        const loadingSummary = document.getElementById('loadingSummary');
-        const reportSummaryTextArea = document.getElementById('reportSummary');
 
         /**
          * Displays a temporary message box with the given text.
@@ -485,66 +474,6 @@
             });
         });
 
-        // Gemini API Integration: Generate Summary
-        generateSummaryButton.addEventListener('click', async () => {
-            stopCameraStream(); // Ensure camera is off
-
-            const problemText = document.getElementById('problemDescription').value;
-            const solutionText = document.getElementById('solutionProposed').value;
-            const observationsText = document.getElementById('additionalObservations').value;
-
-            const fullReportText = `Título do Relatório: ${document.getElementById('reportTitle').value}\n` +
-                                   `Data: ${document.getElementById('reportDate').value}\n` +
-                                   `Autor: ${document.getElementById('reportAuthor').value}\n\n` +
-                                   `Descrição: ${problemText}\n\n` +
-                                   `Ações Realizadas/Solução: ${solutionText}\n\n` +
-                                   `Observações/Conclusão: ${observationsText}`;
-
-            if (fullReportText.trim().length < 50) { // Require a minimum amount of text
-                showMessageBox('Por favor, adicione mais conteúdo ao relatório para gerar um resumo.');
-                return;
-            }
-
-            loadingSummary.style.display = 'block'; // Show loading indicator
-            reportSummaryTextArea.value = ''; // Clear previous summary
-
-            try {
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: `Por favor, resuma o seguinte relatório técnico de forma concisa e profissional, destacando os pontos principais: \n\n${fullReportText}` }] });
-
-                const payload = { contents: chatHistory };
-                const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    reportSummaryTextArea.value = text;
-                    showMessageBox('Resumo gerado com sucesso!');
-                } else {
-                    reportSummaryTextArea.value = 'Não foi possível gerar o resumo. Tente novamente.';
-                    showMessageBox('Erro ao gerar resumo.');
-                    console.error('Unexpected Gemini API response structure:', result);
-                }
-            } catch (error) {
-                reportSummaryTextArea.value = 'Ocorreu um erro ao conectar com o serviço de IA. Verifique sua conexão.';
-                showMessageBox('Erro de conexão com IA.');
-                console.error('Error calling Gemini API:', error);
-            } finally {
-                loadingSummary.style.display = 'none'; // Hide loading indicator
-            }
-        });
-
-
         // Event listener for Generate Report button
         document.getElementById('generateReportButton').addEventListener('click', () => {
             stopCameraStream(); // Ensure camera is off before printing
@@ -554,10 +483,10 @@
         // Set current date on load
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-            const dd = String(today.getDate()).padStart(2, '0');
-            document.getElementById('reportDate').value = `${yyyy}-${mm}-${dd}`;
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+            const day = String(today.getDate()).padStart(2, '0');
+            document.getElementById('reportDate').value = `${year}-${month}-${day}`;
         });
     </script>
 </body>
